@@ -1,74 +1,82 @@
+
 provider "aws" {
   region = "us-east-1"
 }
 
+resource "aws_s3_bucket" "raw_bucket" {
+  bucket        = var.raw_bucket_name
+  force_destroy = true
+}
 
-# -------------------------
+
+resource "aws_s3_bucket" "clean_bucket" {
+  bucket        = var.clean_bucket_name
+  force_destroy = true
+}
+
+
+# GLUE SCRIPT BUCKET (USER INPUT)
+
+resource "aws_s3_bucket" "glue_script_bucket" {
+  bucket        = var.glue_script_bucket
+  force_destroy = true
+}
+
+
+# UPLOAD GLUE SCRIPT TO S3
+
+resource "aws_s3_object" "glue_script_upload" {
+  bucket = aws_s3_bucket.glue_script_bucket.bucket
+  key    = "scripts/liquor_cleaning_job.py"
+  source = "../glue/liquor_cleaning_job.py"
+}
+
 # IAM ROLE FOR GLUE
-# -------------------------
+
 resource "aws_iam_role" "glue_role" {
-  name = var.glue_role_name
+  name = "AWSGlueServiceRole-liquor"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Principal = { Service = "glue.amazonaws.com" }
-      Action = "sts:AssumeRole"
-    }]
+    Statement = [
+      {
+        Effect    = "Allow"
+        Principal = { Service = "glue.amazonaws.com" }
+        Action    = "sts:AssumeRole"
+      }
+    ]
   })
 }
 
-resource "aws_iam_role_policy_attachment" "glue_policy" {
+
+# ATTACH AWS MANAGED GLUE POLICY
+
+resource "aws_iam_role_policy_attachment" "glue_policy_attach" {
   role       = aws_iam_role.glue_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"
 }
 
-# -------------------------
-# GLUE JOB
-# -------------------------
-resource "aws_glue_job" "liquor_job" {
-  name     = "liquor-sales-cleaning-job"
+
+# CREATE AWS GLUE JOB
+
+resource "aws_glue_job" "liquor_cleaning_job" {
+  name     = var.glue_job_name
   role_arn = aws_iam_role.glue_role.arn
 
-  glue_version = "4.0"
+  glue_version        = "4.0"
+  worker_type         = "G.2X"
+  number_of_workers   = 5
+  timeout             = 480
 
   command {
     name            = "glueetl"
     python_version  = "3"
-    script_location = var.glue_script_s3_path
+    script_location = "s3://${aws_s3_bucket.glue_script_bucket.bucket}/scripts/liquor_cleaning_job.py"
   }
 
   default_arguments = {
-    "--job-language" = "python"
+    "--job-language"            = "python"
+    "--enable-continuous-cloudwatch-log" = "true"
+    "--enable-metrics"          = "true"
   }
-}
-
-# -------------------------
-# GLUE CRAWLER
-# -------------------------
-resource "aws_glue_crawler" "clean_crawler" {
-  name          = "liquor-cleaned-crawler"
-  role          = aws_iam_role.glue_role.arn
-  database_name = aws_glue_catalog_database.athena_db.name
-
-  s3_target {
-    path = var.clean_s3_base_path
-  }
-}
-
-# -------------------------
-# ATHENA DATABASE
-# -------------------------
-resource "aws_glue_catalog_database" "athena_db" {
-  name = var.athena_db_name
-}
-
-# -------------------------
-# ATHENA VIEWS
-# -------------------------
-resource "aws_athena_named_query" "yearly_trend_view" {
-  name      = "vw_yearly_trend"
-  database  = aws_glue_catalog_database.athena_db.name
-  query     = file("${path.module}/views/vw_yearly_trend.sql")
 }
