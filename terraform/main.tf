@@ -60,7 +60,9 @@ resource "aws_iam_role_policy_attachment" "glue_policy_attach" {
 # CREATE AWS GLUE JOB
 
 resource "aws_glue_job" "liquor_cleaning_job" {
-  name     = var.glue_job_name
+  name = var.glue_job_name
+}
+
   role_arn = aws_iam_role.glue_role.arn
 
   glue_version        = "4.0"
