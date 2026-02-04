@@ -15,12 +15,15 @@ resource "aws_s3_bucket" "clean_bucket" {
 }
 
 
-# GLUE SCRIPT BUCKET (USER INPUT)
-
 resource "aws_s3_bucket" "glue_script_bucket" {
-  bucket        = var.glue_script_bucket
+  bucket        = "liquor-glue-scripts-${random_id.suffix.hex}"
   force_destroy = true
 }
+
+resource "random_id" "suffix" {
+  byte_length = 4
+}
+
 
 
 # UPLOAD GLUE SCRIPT TO S3
