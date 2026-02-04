@@ -3,12 +3,11 @@ name: Terraform Infrastructure
 on:
   workflow_dispatch:
     inputs:
-      raw_bucket:
-        required: true
-      clean_bucket:
-        required: true
-      glue_script_bucket:
-        required: true
+  raw_bucket:
+    required: true
+  clean_bucket:
+    required: true
+
 
 jobs:
   terraform:
@@ -34,5 +33,5 @@ jobs:
           terraform apply -auto-approve \
           -var="raw_bucket_name=${{ github.event.inputs.raw_bucket }}" \
           -var="clean_bucket_name=${{ github.event.inputs.clean_bucket }}" \
-          -var="glue_script_bucket=${{ github.event.inputs.glue_script_bucket }}"
+          
         working-directory: terraform
