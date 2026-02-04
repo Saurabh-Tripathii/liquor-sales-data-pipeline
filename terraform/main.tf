@@ -85,18 +85,17 @@ resource "aws_glue_job" "liquor_cleaning_job" {
 # ATHENA / GLUE DATABASE
 
 resource "aws_glue_catalog_database" "liquor_db" {
-  name = "liquor_db"
+  name = "liquor_sales_database"
 }
 
 
 #GLUE CRAWLER FOR CLEANED DATA
 
-resource "aws_glue_crawler" "clean_data_crawler" {
+
+resource "aws_glue_crawler" "cleaned_data_crawler" {
   name          = "liquor-cleaned-data-crawler"
   role          = aws_iam_role.glue_role.arn
-  database_name = "liquor_db"
-
-  table_prefix = "cleaned_"
+  database_name = aws_glue_catalog_database.liquor_db.name
 
   s3_target {
     path = "s3://${var.clean_bucket_name}/"
@@ -104,6 +103,9 @@ resource "aws_glue_crawler" "clean_data_crawler" {
 
   schema_change_policy {
     update_behavior = "UPDATE_IN_DATABASE"
-    delete_behavior = "DEPRECATE_IN_DATABASE"
+    delete_behavior = "LOG"
   }
+
+  table_prefix = ""  
 }
+
