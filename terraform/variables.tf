@@ -1,15 +1,16 @@
 variable "raw_bucket_name" {
-  description = "Raw data S3 bucket name"
-  type        = string
+  type = string
 }
 
 variable "clean_bucket_name" {
-  description = "Cleaned data S3 bucket name"
-  type        = string
+  type = string
 }
 
-variable "glue_role_name" {
-  description = "Glue IAM role name"
-  type        = string
-  default     = "AWSGlueServiceRole-liquor"
+variable "glue_script_bucket" {
+  type = string
+}
+
+variable "glue_job_name" {
+  type    = string
+  default = "liquor-sales-cleaning-job"
 }
