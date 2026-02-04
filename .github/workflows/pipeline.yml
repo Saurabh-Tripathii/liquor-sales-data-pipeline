@@ -29,3 +29,8 @@ jobs:
               \"--RAW_S3_PATH\": \"${{ github.event.inputs.raw_path }}\",
               \"--CLEAN_S3_PATH\": \"${{ github.event.inputs.clean_path }}\"
             }"
+
+      - name: Run Glue Crawler
+        run: |
+          aws glue start-crawler \
+            --name liquor-cleaned-data-crawler
