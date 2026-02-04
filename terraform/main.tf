@@ -80,3 +80,30 @@ resource "aws_glue_job" "liquor_cleaning_job" {
     "--enable-metrics"          = "true"
   }
 }
+
+
+# ATHENA / GLUE DATABASE
+
+resource "aws_glue_catalog_database" "liquor_db" {
+  name = "liquor_db"
+}
+
+
+#GLUE CRAWLER FOR CLEANED DATA
+
+resource "aws_glue_crawler" "clean_data_crawler" {
+  name          = "liquor-cleaned-data-crawler"
+  role          = aws_iam_role.glue_role.arn
+  database_name = "liquor_db"
+
+  table_prefix = "cleaned_"
+
+  s3_target {
+    path = "s3://${var.clean_bucket_name}/"
+  }
+
+  schema_change_policy {
+    update_behavior = "UPDATE_IN_DATABASE"
+    delete_behavior = "DEPRECATE_IN_DATABASE"
+  }
+}
