@@ -1,16 +1,20 @@
 variable "raw_bucket_name" {
-  type = string
+  description = "Raw S3 bucket name"
+  type        = string
 }
 
 variable "clean_bucket_name" {
-  type = string
+  description = "Cleaned S3 bucket name"
+  type        = string
 }
 
 variable "glue_script_bucket" {
-  type = string
+  description = "S3 bucket for Glue scripts"
+  type        = string
 }
 
 variable "glue_job_name" {
-  type    = string
-  default = "liquor-sales-cleaning-job"
+  description = "Glue Job Name"
+  type        = string
+  default     = "liquor-sales-cleaning-job"
 }
