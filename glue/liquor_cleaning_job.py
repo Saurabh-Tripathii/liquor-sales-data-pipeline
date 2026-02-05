@@ -38,20 +38,34 @@ df = spark.read \
 
 df = df.toDF(*[re.sub(r"\s+", "_", c.strip()) for c in df.columns])
 
+print("==== NORMALIZED COLUMNS ====")
+print(df.columns)
+
 # =========================================================
 # 4. Drop critical NULL rows
 # =========================================================
-
 df_clean = df.dropna(subset=[
+    "Address", "City", "Zip_Code",
+    ...
+])
+
+required_cols = [
     "Address", "City", "Zip_Code",
     "Volume_Sold_(Gallons)", "Volume_Sold_(Liters)",
     "Sale_(Dollars)", "Bottles_Sold",
     "State_Bottle_Retail", "Bottle_Volume_(ml)",
     "Pack", "Item_Number", "Vendor_Name",
     "Vendor_Number", "Category_Name", "Category"
-])
+]
 
-df_clean = df_clean.drop("Store_Location")
+existing_cols = [c for c in required_cols if c in df.columns]
+
+df_clean = df.dropna(subset=existing_cols)
+
+
+if "Store_Location" in df_clean.columns:
+    df_clean = df_clean.drop("Store_Location")
+
 
 # =========================================================
 # 5. RENAME Invoice column 
