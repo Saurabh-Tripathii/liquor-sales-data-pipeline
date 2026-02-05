@@ -62,16 +62,23 @@ resource "aws_iam_role_policy_attachment" "glue_policy_attach" {
 
 # CREATE AWS GLUE JOB
 
-resource "aws_glue_job" "liquor_cleaning_job" {
-  name = var.glue_job_name
+# ATTACH AWS MANAGED GLUE POLICY
+resource "aws_iam_role_policy_attachment" "glue_policy_attach" {
+  role       = aws_iam_role.glue_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"
 }
 
+# ================================
+# AWS GLUE JOB
+# ================================
+resource "aws_glue_job" "liquor_cleaning_job" {
+  name     = var.glue_job_name
   role_arn = aws_iam_role.glue_role.arn
 
-  glue_version        = "4.0"
-  worker_type         = "G.2X"
-  number_of_workers   = 5
-  timeout             = 480
+  glue_version      = "4.0"
+  worker_type       = "G.2X"
+  number_of_workers = 5
+  timeout           = 480
 
   command {
     name            = "glueetl"
@@ -80,9 +87,11 @@ resource "aws_glue_job" "liquor_cleaning_job" {
   }
 
   default_arguments = {
-    "--job-language"            = "python"
+    "--job-language" = "python"
+    "--RAW_S3_PATH"  = "s3://${var.raw_bucket_name}/"
+    "--CLEAN_S3_PATH" = "s3://${var.clean_bucket_name}/"
     "--enable-continuous-cloudwatch-log" = "true"
-    "--enable-metrics"          = "true"
+    "--enable-metrics" = "true"
   }
 }
 
