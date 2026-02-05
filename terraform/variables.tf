@@ -1,16 +1,9 @@
-variable "raw_bucket_name" {
-  type = string
-}
-
-variable "clean_bucket_name" {
-  type = string
-}
-
 variable "glue_script_bucket" {
-  type = string
+  description = "Bucket where glue script already exists"
+  type        = string
 }
 
-variable "glue_job_name" {
-  type    = string
-  default = "liquor-sales-cleaning-job"
+variable "clean_s3_path" {
+  description = "Cleaned data S3 path"
+  type        = string
 }
