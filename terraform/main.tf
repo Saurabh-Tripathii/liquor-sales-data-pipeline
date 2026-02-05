@@ -2,9 +2,9 @@ provider "aws" {
   region = "us-east-1"
 }
 
-# -----------------------
-# S3 BUCKETS (AUTO)
-# -----------------------
+#################################
+# S3 BUCKETS
+#################################
 
 resource "aws_s3_bucket" "raw_bucket" {
   bucket        = var.raw_bucket_name
@@ -27,9 +27,9 @@ resource "aws_s3_object" "glue_script_upload" {
   source = "../glue/liquor_cleaning_job.py"
 }
 
-# -----------------------
-# IAM ROLE (AUTO)
-# -----------------------
+#################################
+# IAM ROLE FOR GLUE
+#################################
 
 resource "aws_iam_role" "glue_role" {
   name = "AWSGlueServiceRole-liquor"
@@ -38,29 +38,31 @@ resource "aws_iam_role" "glue_role" {
     Version = "2012-10-17"
     Statement = [{
       Effect = "Allow"
-      Principal = { Service = "glue.amazonaws.com" }
+      Principal = {
+        Service = "glue.amazonaws.com"
+      }
       Action = "sts:AssumeRole"
     }]
   })
 }
 
-resource "aws_iam_role_policy_attachment" "glue_policy" {
+resource "aws_iam_role_policy_attachment" "glue_policy_attach" {
   role       = aws_iam_role.glue_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"
 }
 
-# -----------------------
+#################################
 # GLUE JOB
-# -----------------------
+#################################
 
 resource "aws_glue_job" "liquor_job" {
   name     = "liquor-sales-cleaning-job"
   role_arn = aws_iam_role.glue_role.arn
 
   glue_version      = "4.0"
-  worker_type       = "G.2X"
-  number_of_workers = 5
-  timeout           = 480
+  worker_type       = "G.1X"
+  number_of_workers = 2
+  timeout           = 30
 
   command {
     name            = "glueetl"
@@ -73,10 +75,10 @@ resource "aws_glue_job" "liquor_job" {
   }
 }
 
+#################################
+# GLUE CRAWLER (FINAL & CORRECT)
+#################################
 
-database_name = "liquor_sales_database"
-
-# GLUE CRAWLER (FINAL)
 resource "aws_glue_crawler" "cleaned_crawler" {
   name          = "liquor-cleaned-data-crawler"
   role          = aws_iam_role.glue_role.arn
