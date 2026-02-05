@@ -1,15 +1,15 @@
 Project Synopsis-Group 5
 
-Project Title : State Level Liquor Sales Analysis
+## Project Title : State Level Liquor Sales Analysis
 
-Problem Statement:
+## Problem Statement:
 Demand & Trend Analysis
 Liquor sales vary across regions and time due to seasonal and consumption patterns, making it difficult to understand demand distribution and trends from raw sales data.
 
 Performance Evaluation & Decision Support
 Analyzing product and vendor performance is complex without consolidated insights, creating a need for an interactive analytical dashboard to support data-driven decisions.
 
-Objectives:
+## Objectives:
 1.	To analyze state-level liquor sales data in order to identify meaningful patterns and trends that support data-driven planning and decision-making for state authorities.
 2.	To analyze regional variations in liquor sales by studying volume sold and sales value across different counties and cities.
 3.	To identify time-based and seasonal trends in liquor sales using historical transaction data.
@@ -17,7 +17,7 @@ Objectives:
 5.	To design and develop an interactive dashboard that presents key insights in a clear and user-friendly manner.
 6.	To support future enhancements such as demand forecasting and trend prediction using analytical techniques.
 
-Scope of the Project:
+## Scope of the Project:
 1.	Analyze state-level liquor sales data
 2.	Study wholesale transactions between the state authority and licensed retailers
 3.	Identify region-wise (county/city) demand patterns
@@ -25,11 +25,11 @@ Scope of the Project:
 5.	Evaluate product-wise and vendor-wise performance
 6.	Present insights through an interactive dashboard
 
-Data Description:
+## Data Description:
 The dataset used in this project is the Iowa Liquor Sales dataset, published by the state of Iowa through its open data portal. It contains structured, transactional records of wholesale liquor sales made by the state authority to licensed retailers across Iowa.
 The dataset includes information on sales dates, store locations, products, vendors, pricing, and volume sold, and represents sales at an aggregate level without individual customer details. Covering multiple years of historical data, it is suitable for analyzing regional demand patterns, seasonal trends, and product performance through exploratory data analysis and visualization.
 
-Tool and Technologies Used:
+## Tool and Technologies Used:
 1.	AWS S3
 2.	Lambda
 3.	AWS Glue
@@ -38,7 +38,7 @@ Tool and Technologies Used:
 6.	Terraform
 7.	GitHub
 
-Key Performance Indicators (KPIs):
+## Key Performance Indicators (KPIs):
 1.	Total Sales (Dollars)
 2.	Total Revenue Generated
 3.	Total Volume Sold
@@ -49,7 +49,7 @@ Key Performance Indicators (KPIs):
 8.	Year Wise Sales Growth
 9.	Top Products by Volume
 
-Expected Outcome:
+## Expected Outcome:
 1.	A clear understanding of state-level liquor sales patterns through analysis of historical wholesale transaction data.
 2.	Identification of regional demand variations across counties and cities based on sales value and volume sold.
 3.	Discovery of time-based and seasonal trends that highlight peak sales periods and long-term sales behavior.
