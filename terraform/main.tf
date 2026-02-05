@@ -41,15 +41,6 @@ resource "aws_iam_role_policy_attachment" "glue_policy_attach" {
 }
 
 
-
-# CREATE AWS GLUE JOB
-
-# ATTACH AWS MANAGED GLUE POLICY
-resource "aws_iam_role_policy_attachment" "glue_policy_attach" {
-  role       = aws_iam_role.glue_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"
-}
-
 # ================================
 # AWS GLUE JOB
 # ================================
