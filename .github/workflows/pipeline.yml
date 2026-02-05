@@ -1,14 +1,8 @@
-name: Full Data Pipeline
+name: End-to-End Data Pipeline
 
 on:
   workflow_dispatch:
     inputs:
-      raw_bucket:
-        required: true
-      clean_bucket:
-        required: true
-      glue_script_bucket:
-        required: true
       raw_path:
         required: true
       clean_path:
@@ -36,10 +30,8 @@ jobs:
       - name: Terraform Apply
         run: |
           terraform apply -auto-approve \
-            -var="raw_bucket_name=${{ github.event.inputs.raw_bucket }}" \
-            -var="clean_bucket_name=${{ github.event.inputs.clean_bucket }}" \
-            -var="glue_script_bucket=${{ github.event.inputs.glue_script_bucket }}" \
-            -var="clean_s3_path=${{ github.event.inputs.clean_path }}"
+          -var="raw_bucket_name=$(echo '${{ github.event.inputs.raw_path }}' | cut -d/ -f3)" \
+          -var="clean_bucket_name=$(echo '${{ github.event.inputs.clean_path }}' | cut -d/ -f3)"
         working-directory: terraform
 
       - name: Run Glue Job
@@ -50,6 +42,9 @@ jobs:
               \"--RAW_S3_PATH\": \"${{ github.event.inputs.raw_path }}\",
               \"--CLEAN_S3_PATH\": \"${{ github.event.inputs.clean_path }}\"
             }"
+
+      - name: Wait
+        run: sleep 60
 
       - name: Run Glue Crawler
         run: aws glue start-crawler --name liquor-cleaned-data-crawler
