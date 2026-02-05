@@ -3,26 +3,38 @@ name: Terraform Infrastructure
 on:
   workflow_dispatch:
     inputs:
-  raw_bucket:
-    required: true
-  clean_bucket:
-    required: true
+      raw_bucket:
+        description: "Raw S3 bucket name (already exists or new)"
+        required: true
+        type: string
 
+      clean_bucket:
+        description: "Clean S3 bucket name"
+        required: true
+        type: string
+
+      glue_script_bucket:
+        description: "S3 bucket to store Glue script"
+        required: true
+        type: string
 
 jobs:
   terraform:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - uses: aws-actions/configure-aws-credentials@v4
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - uses: hashicorp/setup-terraform@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
         run: terraform init
@@ -31,7 +43,7 @@ jobs:
       - name: Terraform Apply
         run: |
           terraform apply -auto-approve \
-          -var="raw_bucket_name=${{ github.event.inputs.raw_bucket }}" \
-          -var="clean_bucket_name=${{ github.event.inputs.clean_bucket }}" \
-          
+            -var="raw_bucket_name=${{ github.event.inputs.raw_bucket }}" \
+            -var="clean_bucket_name=${{ github.event.inputs.clean_bucket }}" \
+            -var="glue_script_bucket=${{ github.event.inputs.glue_script_bucket }}"
         working-directory: terraform
