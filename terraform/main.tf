@@ -86,11 +86,14 @@ resource "aws_glue_job" "liquor_job" {
 }
 
 
-# EXISTING GLUE DATABASE
-
-data "aws_glue_catalog_database" "liquor_db" {
+resource "aws_glue_catalog_database" "liquor_db" {
   name = "liquor_sales_database"
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
+
 
 
 # GLUE CRAWLER
