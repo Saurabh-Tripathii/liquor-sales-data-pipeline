@@ -63,7 +63,6 @@ resource "aws_iam_role_policy_attachment" "glue_policy" {
 
 # -------------------------
 # GLUE JOB
-# -------------------------
 resource "aws_glue_job" "liquor_job" {
   name     = var.glue_job_name
   role_arn = aws_iam_role.glue_role.arn
@@ -82,14 +81,25 @@ resource "aws_glue_job" "liquor_job" {
   default_arguments = {
     "--job-language" = "python"
   }
+
+  lifecycle {
+    ignore_changes = [
+      default_arguments
+    ]
+  }
 }
+
 
 # -------------------------
 # GLUE DATABASE (SAME NAME)
-# -------------------------
 resource "aws_glue_catalog_database" "liquor_db" {
   name = "liquor_sales_database"
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
+
 
 # -------------------------
 # GLUE CRAWLER
