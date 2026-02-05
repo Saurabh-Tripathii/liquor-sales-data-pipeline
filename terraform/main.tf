@@ -40,6 +40,18 @@ resource "aws_s3_bucket" "glue_script_bucket" {
   force_destroy = true
 }
 
+# UPLOAD GLUE SCRIPT TO S3  
+
+resource "aws_s3_object" "glue_script_upload" {
+  bucket = coalesce(
+    try(aws_s3_bucket.glue_script_bucket[0].bucket, null),
+    data.aws_s3_bucket.script_existing.bucket
+  )
+
+  key    = "scripts/liquor_cleaning_job.py"
+  source = "../glue/liquor_cleaning_job.py"
+}
+
 
 
 
