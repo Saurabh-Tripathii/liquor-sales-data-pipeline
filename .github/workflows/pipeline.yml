@@ -1,13 +1,17 @@
-name: Data Pipeline
+name: Full Data Pipeline
 
 on:
   workflow_dispatch:
     inputs:
+      raw_bucket:
+        required: true
+      clean_bucket:
+        required: true
+      glue_script_bucket:
+        required: true
       raw_path:
-        description: "s3://raw-bucket/path/"
         required: true
       clean_path:
-        description: "s3://clean-bucket/path/"
         required: true
 
 jobs:
@@ -15,11 +19,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform
+
+      - name: Terraform Apply
+        run: |
+          terraform apply -auto-approve \
+            -var="raw_bucket_name=${{ github.event.inputs.raw_bucket }}" \
+            -var="clean_bucket_name=${{ github.event.inputs.clean_bucket }}" \
+            -var="glue_script_bucket=${{ github.event.inputs.glue_script_bucket }}" \
+            -var="clean_s3_path=${{ github.event.inputs.clean_path }}"
+        working-directory: terraform
 
       - name: Run Glue Job
         run: |
@@ -31,6 +52,4 @@ jobs:
             }"
 
       - name: Run Glue Crawler
-        run: |
-          aws glue start-crawler \
-            --name liquor-cleaned-data-crawler
+        run: aws glue start-crawler --name liquor-cleaned-data-crawler
