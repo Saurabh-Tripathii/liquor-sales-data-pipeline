@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-
-# =========================================================
 # 1. Glue setup & job parameters
-# =========================================================
 
 import sys
 import re
@@ -30,27 +27,14 @@ spark = glueContext.spark_session
 job = Job(glueContext)
 job.init("liquor-sales-cleaning-job-copy", args)
 
-# =========================================================
 # 2. Read RAW CSV
-# =========================================================
-
 df = spark.read \
     .option("header", "true") \
     .option("inferSchema", "true") \
     .csv(RAW_S3_PATH)
 
-from pyspark.sql.functions import col, lit
-
-
-if "address" in df.columns:
-    df = df.withColumn("address", col("address"))
-else:
-    df = df.withColumn("address", lit(None))
-
-
-# =========================================================
 # 3. Normalize column names
-# =========================================================
+
 
 df = df.toDF(*[re.sub(r"\s+", "_", c.strip()) for c in df.columns])
 
