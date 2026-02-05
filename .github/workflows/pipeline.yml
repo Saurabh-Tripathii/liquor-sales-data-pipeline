@@ -1,4 +1,4 @@
-name: Data Engineering Pipeline
+name: Pipeline
 
 on:
   workflow_dispatch:
