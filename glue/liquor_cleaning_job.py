@@ -30,7 +30,7 @@ job.init("liquor-sales-cleaning-job-copy", args)
 # 2. Read RAW CSV
 df = spark.read \
     .option("header", "true") \
-    .option("inferSchema", "true") \
+    .option("inferSchema", "false") \
     .csv(RAW_S3_PATH)
 
 # 3. Normalize column names
