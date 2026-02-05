@@ -50,14 +50,14 @@ Key Performance Indicators (KPIs):
 9.	Top Products by Volume
 
 Expected Outcome:
-•	A clear understanding of state-level liquor sales patterns through analysis of historical wholesale transaction data.
-•	Identification of regional demand variations across counties and cities based on sales value and volume sold.
-•	Discovery of time-based and seasonal trends that highlight peak sales periods and long-term sales behavior.
-•	Insights into product categories and vendor performance, identifying fast-moving products and major contributors to revenue.
-•	An interactive dashboard that visually presents key KPIs and analytical insights, enabling quick and informed decision-making.
-•	A data-driven foundation that can support future enhancements such as demand forecasting and advanced analytics.
+1.	A clear understanding of state-level liquor sales patterns through analysis of historical wholesale transaction data.
+2.	Identification of regional demand variations across counties and cities based on sales value and volume sold.
+3.	Discovery of time-based and seasonal trends that highlight peak sales periods and long-term sales behavior.
+4.	Insights into product categories and vendor performance, identifying fast-moving products and major contributors to revenue.
+5.	An interactive dashboard that visually presents key KPIs and analytical insights, enabling quick and informed decision-making.
+6.	A data-driven foundation that can support future enhancements such as demand forecasting and advanced analytics.
 
-Conclusion:
+## Conclusion:
 This project successfully analyzes the Iowa Liquor Sales dataset to derive meaningful insights from state-level wholesale liquor sales data. By applying exploratory data analysis techniques, the project identifies regional demand patterns, seasonal sales trends, and product and vendor performance at an aggregate level.
 The use of interactive dashboards enables clear and intuitive visualization of key metrics such as sales value, volume sold, and regional distribution, making the data easily interpretable for decision-makers. Although individual customer-level information is not included, the analysis provides valuable support for planning, distribution management, and data-driven policy decisions.
 Overall, the project demonstrates how structured government data can be effectively transformed into actionable insights using data analytics and visualization techniques.
