@@ -7,5 +7,6 @@ output "clean_bucket" {
 }
 
 output "glue_job_name" {
-  value = aws_glue_job.liquor_cleaning_job.name
+  value = aws_glue_job.liquor_job.name
 }
+
