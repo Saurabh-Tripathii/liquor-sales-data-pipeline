@@ -1,109 +1,49 @@
 provider "aws" {
-  region = var.aws_region
+  region = "us-east-1"
 }
 
 # =========================
-# RAW BUCKET (USE OR CREATE)
+# EXISTING IAM ROLE
 # =========================
-data "aws_s3_bucket" "raw_existing" {
-  bucket = var.raw_bucket_name
-}
-
-resource "aws_s3_bucket" "raw_bucket" {
-  count  = length(try(data.aws_s3_bucket.raw_existing.id, "")) == 0 ? 1 : 0
-  bucket = var.raw_bucket_name
-}
-
-
-# CLEAN BUCKET (USE OR CREATE)
-
-data "aws_s3_bucket" "clean_existing" {
-  bucket = var.clean_bucket_name
-}
-
-resource "aws_s3_bucket" "clean_bucket" {
-  count  = length(try(data.aws_s3_bucket.clean_existing.id, "")) == 0 ? 1 : 0
-  bucket = var.clean_bucket_name
-}
-
-# GLUE SCRIPT BUCKET (USE OR CREATE)
-
-data "aws_s3_bucket" "glue_script_existing" {
-  bucket = var.glue_script_bucket
-}
-
-resource "aws_s3_bucket" "glue_script_bucket" {
-  count  = length(try(data.aws_s3_bucket.glue_script_existing.id, "")) == 0 ? 1 : 0
-  bucket = var.glue_script_bucket
-}
-
-# Upload Glue script from GitHub
-resource "aws_s3_object" "glue_script_upload" {
-  bucket = coalesce(
-    try(aws_s3_bucket.glue_script_bucket[0].bucket, null),
-    data.aws_s3_bucket.glue_script_existing.bucket
-  )
-
-  key    = "scripts/liquor_cleaning_job.py"
-  source = "../glue/liquor_cleaning_job.py"
-}
-
-
-# EXISTING IAM ROLE (REUSE)
-
 data "aws_iam_role" "glue_role" {
   name = "AWSGlueServiceRole-liquor"
 }
 
-
-
-# GLUE JOB
-
+# =========================
+# GLUE JOB (ONLY DEFINE)
+# =========================
 resource "aws_glue_job" "liquor_job" {
   name     = "liquor-sales-cleaning-job"
   role_arn = data.aws_iam_role.glue_role.arn
 
+  glue_version = "4.0"
+  worker_type  = "G.2X"
+  number_of_workers = 5
+
   command {
     name            = "glueetl"
+    script_location = "s3://my-glue-scripts-s/scripts/liquor_cleaning_job.py"
     python_version  = "3"
-    script_location = "s3://${var.glue_script_bucket}/scripts/liquor_cleaning_job.py"
   }
 
   default_arguments = {
-    "--job-language"  = "python"
-    "--RAW_S3_PATH"   = var.raw_s3_path
-    "--CLEAN_S3_PATH" = var.clean_s3_path
+    "--job-language" = "python"
   }
 
-  lifecycle {
-    ignore_changes = all
-  }
+  max_retries = 0
+  timeout     = 10
 }
 
-
-
-resource "aws_glue_catalog_database" "liquor_db" {
-  name = "liquor_sales_database"
-
-  lifecycle {
-    prevent_destroy = true
-    ignore_changes  = all
-  }
-}
-
-
-
-
-# GLUE CRAWLER
-
+# =========================
+# GLUE CRAWLER (EXISTING DB)
+# =========================
 resource "aws_glue_crawler" "cleaned_crawler" {
-  name          = "liquor-cleaned-data-crawler"
+  name          = "liquor-cleaned-crawler"
   role          = data.aws_iam_role.glue_role.arn
-  database_name = aws_glue_catalog_database.liquor_db.name
-
+  database_name = "liquor_sales_database"
 
   s3_target {
-    path = "s3://${var.clean_bucket_name}/"
+    path = var.clean_s3_path
   }
 
   schema_change_policy {
