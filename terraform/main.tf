@@ -76,9 +76,7 @@ resource "aws_glue_job" "liquor_job" {
 
 database_name = "liquor_sales_database"
 
-
-# -----------------------
-# GLUE CRAWLER
+# GLUE CRAWLER (FINAL)
 resource "aws_glue_crawler" "cleaned_crawler" {
   name          = "liquor-cleaned-data-crawler"
   role          = aws_iam_role.glue_role.arn
