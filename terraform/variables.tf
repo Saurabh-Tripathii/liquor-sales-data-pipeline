@@ -12,3 +12,12 @@ variable "glue_job_name" {
 variable "glue_script_bucket" {
   default = "liquor-glue-scripts-auto"
 }
+variable "raw_s3_path" {
+  description = "S3 path where raw data is present (input for Glue job)"
+  type        = string
+}
+
+variable "clean_s3_path" {
+  description = "S3 path where cleaned data will be written by Glue job"
+  type        = string
+}
