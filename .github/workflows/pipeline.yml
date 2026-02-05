@@ -4,8 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       raw_path:
+        description: "RAW S3 path (s3://bucket/folder/)"
         required: true
       clean_path:
+        description: "CLEAN S3 path (s3://bucket/folder/)"
         required: true
 
 jobs:
@@ -43,7 +45,7 @@ jobs:
               \"--CLEAN_S3_PATH\": \"${{ github.event.inputs.clean_path }}\"
             }"
 
-      - name: Wait
+      - name: Wait for data write
         run: sleep 60
 
       - name: Run Glue Crawler
