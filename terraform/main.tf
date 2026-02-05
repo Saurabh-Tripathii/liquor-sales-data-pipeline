@@ -69,7 +69,7 @@ resource "aws_glue_job" "liquor_job" {
   role_arn = aws_iam_role.glue_role.arn
 
   glue_version      = "4.0"
-  worker_type       = "G.1X"
+  worker_type       = "G.2X"
   number_of_workers = 5
   timeout           = 480
 
