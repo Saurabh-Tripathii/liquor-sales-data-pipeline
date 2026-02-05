@@ -1,13 +1,13 @@
-name: End-to-End Data Pipeline
+name: Data Engineering Pipeline
 
 on:
   workflow_dispatch:
     inputs:
-      raw_path:
-        description: "RAW S3 path (s3://bucket/folder/)"
+      raw_s3_path:
+        description: "RAW data S3 path (example: s3://bucket/path/)"
         required: true
-      clean_path:
-        description: "CLEAN S3 path (s3://bucket/folder/)"
+      clean_s3_path:
+        description: "CLEAN data S3 path (example: s3://bucket/cleaned/)"
         required: true
 
 jobs:
@@ -15,38 +15,41 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # 1️⃣ Checkout repo
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - uses: aws-actions/configure-aws-credentials@v4
+      # 2️⃣ Configure AWS
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - uses: hashicorp/setup-terraform@v3
+      # 3️⃣ Setup Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
+      # 4️⃣ Terraform Init
       - name: Terraform Init
         run: terraform init
         working-directory: terraform
 
+      # 5️⃣ Terraform Apply (infra + glue config)
       - name: Terraform Apply
         run: |
           terraform apply -auto-approve \
-          -var="raw_bucket_name=$(echo '${{ github.event.inputs.raw_path }}' | cut -d/ -f3)" \
-          -var="clean_bucket_name=$(echo '${{ github.event.inputs.clean_path }}' | cut -d/ -f3)"
+            -var="raw_s3_path=${{ github.event.inputs.raw_s3_path }}" \
+            -var="clean_s3_path=${{ github.event.inputs.clean_s3_path }}"
         working-directory: terraform
 
+      # 6️⃣ Run Glue Job
       - name: Run Glue Job
         run: |
           aws glue start-job-run \
             --job-name liquor-sales-cleaning-job \
             --arguments "{
-              \"--RAW_S3_PATH\": \"${{ github.event.inputs.raw_path }}\",
-              \"--CLEAN_S3_PATH\": \"${{ github.event.inputs.clean_path }}\"
+              \"--RAW_S3_PATH\": \"${{ github.event.inputs.raw_s3_path }}\",
+              \"--CLEAN_S3_PATH\": \"${{ github.event.inputs.clean_s3_path }}\"
             }"
-
-      - name: Wait for data write
-        run: sleep 60
-
-      - name: Run Glue Crawler
-        run: aws glue start-crawler --name liquor-cleaned-data-crawler
