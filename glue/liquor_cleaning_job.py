@@ -39,6 +39,15 @@ df = spark.read \
     .option("inferSchema", "true") \
     .csv(RAW_S3_PATH)
 
+from pyspark.sql.functions import col, lit
+
+
+if "address" in df.columns:
+    df = df.withColumn("address", col("address"))
+else:
+    df = df.withColumn("address", lit(None))
+
+
 # =========================================================
 # 3. Normalize column names
 # =========================================================
