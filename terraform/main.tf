@@ -73,22 +73,16 @@ resource "aws_glue_job" "liquor_job" {
   }
 }
 
-# -----------------------
-# EXISTING DATABASE (USE)
-# -----------------------
 
-data "aws_glue_catalog_database" "liquor_db" {
-  name = "liquor_sales_database"
-}
+database_name = "liquor_sales_database"
+
 
 # -----------------------
 # GLUE CRAWLER
-# -----------------------
-
 resource "aws_glue_crawler" "cleaned_crawler" {
   name          = "liquor-cleaned-data-crawler"
   role          = aws_iam_role.glue_role.arn
-  database_name = data.aws_glue_catalog_database.liquor_db.name
+  database_name = "liquor_sales_database"
 
   s3_target {
     path = var.clean_s3_path
