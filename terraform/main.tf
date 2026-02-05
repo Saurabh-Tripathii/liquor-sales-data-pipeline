@@ -8,9 +8,9 @@ provider "aws" {
 data "aws_iam_role" "glue_role" {
   name = "AWSGlueServiceRole-liquor"
 }
-# Allow Glue to read script from S3
-resource "aws_iam_role_policy" "glue_s3_script_access" {
-  name = "glue-s3-script-access"
+
+resource "aws_iam_role_policy" "glue_script_read" {
+  name = "glue-read-script-bucket"
   role = data.aws_iam_role.glue_role.name
 
   policy = jsonencode({
@@ -19,13 +19,18 @@ resource "aws_iam_role_policy" "glue_s3_script_access" {
       {
         Effect = "Allow"
         Action = [
-          "s3:GetObject"
+          "s3:GetObject",
+          "s3:ListBucket"
         ]
-        Resource = "arn:aws:s3:::liquor-glue-scripts-auto/scripts/*"
+        Resource = [
+          "arn:aws:s3:::liquor-glue-scripts-auto",
+          "arn:aws:s3:::liquor-glue-scripts-auto/scripts/*"
+        ]
       }
     ]
   })
 }
+
 
 
 
