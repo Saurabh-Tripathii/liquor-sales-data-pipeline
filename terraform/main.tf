@@ -2,34 +2,49 @@ provider "aws" {
   region = "us-east-1"
 }
 
-#################################
 # S3 BUCKETS
-#################################
+
+# RAW BUCKET (USE OR CREATE)
+
+data "aws_s3_bucket" "raw_existing" {
+  bucket = var.raw_bucket_name
+}
 
 resource "aws_s3_bucket" "raw_bucket" {
+  count         = length(data.aws_s3_bucket.raw_existing.id) == 0 ? 1 : 0
   bucket        = var.raw_bucket_name
   force_destroy = true
 }
 
+# CLEAN BUCKET (USE OR CREATE)
+
+data "aws_s3_bucket" "clean_existing" {
+  bucket = var.clean_bucket_name
+}
+
 resource "aws_s3_bucket" "clean_bucket" {
+  count         = length(data.aws_s3_bucket.clean_existing.id) == 0 ? 1 : 0
   bucket        = var.clean_bucket_name
   force_destroy = true
 }
 
+# GLUE SCRIPT BUCKET (USE OR CREATE)
+
+data "aws_s3_bucket" "script_existing" {
+  bucket = var.glue_script_bucket
+}
+
 resource "aws_s3_bucket" "glue_script_bucket" {
+  count         = length(data.aws_s3_bucket.script_existing.id) == 0 ? 1 : 0
   bucket        = var.glue_script_bucket
   force_destroy = true
 }
 
-resource "aws_s3_object" "glue_script_upload" {
-  bucket = aws_s3_bucket.glue_script_bucket.bucket
-  key    = "scripts/liquor_cleaning_job.py"
-  source = "../glue/liquor_cleaning_job.py"
-}
 
-#################################
+
+
 # IAM ROLE FOR GLUE
-#################################
+
 
 resource "aws_iam_role" "glue_role" {
   name = "AWSGlueServiceRole-liquor"
@@ -51,9 +66,7 @@ resource "aws_iam_role_policy_attachment" "glue_policy_attach" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"
 }
 
-#################################
 # GLUE JOB
-#################################
 
 resource "aws_glue_job" "liquor_job" {
   name     = "liquor-sales-cleaning-job"
@@ -75,9 +88,8 @@ resource "aws_glue_job" "liquor_job" {
   }
 }
 
-#################################
-# GLUE CRAWLER (FINAL & CORRECT)
-#################################
+
+# GLUE CRAWLER
 
 resource "aws_glue_crawler" "cleaned_crawler" {
   name          = "liquor-cleaned-data-crawler"
