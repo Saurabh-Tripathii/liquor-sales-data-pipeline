@@ -52,15 +52,16 @@ resource "aws_s3_object" "glue_script_upload" {
 # EXISTING IAM ROLE (REUSE)
 
 data "aws_iam_role" "glue_role" {
-  name = "AWSGlueServiceRole-liquor-auto"
+  name = "AWSGlueServiceRole-liquor"
 }
+
 
 
 # GLUE JOB
 
 resource "aws_glue_job" "liquor_job" {
   name     = "liquor-sales-cleaning-job"
-  role_arn = aws_iam_role.glue_role.arn
+  role_arn = data.aws_iam_role.glue_role.arn
 
   command {
     name            = "glueetl"
@@ -78,6 +79,7 @@ resource "aws_glue_job" "liquor_job" {
     ignore_changes = all
   }
 }
+
 
 
 resource "aws_glue_catalog_database" "liquor_db" {
