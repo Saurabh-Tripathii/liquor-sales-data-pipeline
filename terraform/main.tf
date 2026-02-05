@@ -92,7 +92,11 @@ resource "aws_glue_job" "liquor_job" {
   command {
     name            = "glueetl"
     python_version  = "3"
-    script_location = "s3://${aws_s3_bucket.glue_script_bucket.bucket}/scripts/liquor_cleaning_job.py"
+    script_location = "s3://${coalesce(
+  try(aws_s3_bucket.glue_script_bucket[0].bucket, null),
+  data.aws_s3_bucket.script_existing.bucket
+)}/scripts/liquor_cleaning_job.py"
+
   }
 
   default_arguments = {
