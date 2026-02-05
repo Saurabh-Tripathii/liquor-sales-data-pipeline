@@ -59,29 +59,23 @@ data "aws_iam_role" "glue_role" {
 # GLUE JOB
 
 resource "aws_glue_job" "liquor_job" {
-  name     = var.glue_job_name
-  role_arn = data.aws_iam_role.glue_role.arn
-
-  glue_version      = "4.0"
-  worker_type       = "G.2X"
-  number_of_workers = 5
-  timeout           = 480
+  name     = "liquor-sales-cleaning-job"
+  role_arn = aws_iam_role.glue_role.arn
 
   command {
     name            = "glueetl"
     python_version  = "3"
-    script_location = "s3://${coalesce(
-      try(aws_s3_bucket.glue_script_bucket[0].bucket, null),
-      data.aws_s3_bucket.glue_script_existing.bucket
-    )}/scripts/liquor_cleaning_job.py"
+    script_location = "s3://${var.glue_script_bucket}/scripts/liquor_cleaning_job.py"
   }
 
   default_arguments = {
-    "--job-language" = "python"
+    "--job-language"  = "python"
+    "--RAW_S3_PATH"   = var.raw_s3_path
+    "--CLEAN_S3_PATH" = var.clean_s3_path
   }
 
   lifecycle {
-    ignore_changes = [default_arguments]
+    ignore_changes = all
   }
 }
 
@@ -91,8 +85,10 @@ resource "aws_glue_catalog_database" "liquor_db" {
 
   lifecycle {
     prevent_destroy = true
+    ignore_changes  = all
   }
 }
+
 
 
 
