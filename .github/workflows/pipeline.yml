@@ -53,3 +53,52 @@ jobs:
               \"--RAW_S3_PATH\": \"${{ github.event.inputs.raw_s3_path }}\",
               \"--CLEAN_S3_PATH\": \"${{ github.event.inputs.clean_s3_path }}\"
             }"
+       # 7️⃣ Ensure Glue Crawler exists & run it
+      - name: Ensure and Run Glue Crawler
+        shell: bash
+        run: |
+          set -e
+
+          CRAWLER_NAME="liquor-cleaned-crawler"
+          DATABASE_NAME="liquor_sales_database"
+          ROLE_NAME="AWSGlueServiceRole-liquor"
+          CLEAN_PATH="${{ github.event.inputs.clean_s3_path }}"
+
+          echo "🔍 Checking if Glue Crawler exists..."
+
+          if aws glue get-crawler --name "$CRAWLER_NAME" >/dev/null 2>&1; then
+            echo "✅ Crawler already exists: $CRAWLER_NAME"
+          else
+            echo "🚀 Crawler not found. Creating crawler..."
+
+            aws glue create-crawler \
+              --name "$CRAWLER_NAME" \
+              --role "$ROLE_NAME" \
+              --database-name "$DATABASE_NAME" \
+              --targets S3Targets=[{Path="$CLEAN_PATH"}] \
+              --schema-change-policy UpdateBehavior=UPDATE_IN_DATABASE,DeleteBehavior=LOG
+          fi
+
+          echo "▶️ Starting Glue Crawler..."
+          aws glue start-crawler --name "$CRAWLER_NAME"
+
+          echo "⏳ Waiting for crawler to finish..."
+
+          while true; do
+            STATUS=$(aws glue get-crawler \
+              --name "$CRAWLER_NAME" \
+              --query 'Crawler.State' \
+              --output text)
+
+            echo "Crawler status: $STATUS"
+
+            if [ "$STATUS" = "READY" ]; then
+              echo "✅ Crawler completed successfully"
+              break
+            fi
+
+            sleep 30
+          done
+
+
+            
