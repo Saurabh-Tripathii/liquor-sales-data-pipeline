@@ -101,7 +101,8 @@ resource "aws_glue_catalog_database" "liquor_db" {
 resource "aws_glue_crawler" "cleaned_crawler" {
   name          = "liquor-cleaned-data-crawler"
   role          = data.aws_iam_role.glue_role.arn
-  database_name = data.aws_glue_catalog_database.liquor_db.name
+  database_name = aws_glue_catalog_database.liquor_db.name
+
 
   s3_target {
     path = "s3://${var.clean_bucket_name}/"
