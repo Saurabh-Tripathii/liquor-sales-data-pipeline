@@ -11,7 +11,7 @@ data "aws_iam_role" "glue_role" {
 # Allow Glue to read script from S3
 resource "aws_iam_role_policy" "glue_s3_script_access" {
   name = "glue-s3-script-access"
-  role = aws_iam_role.glue_role.id
+  role = data.aws_iam_role.glue_role.name
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -26,6 +26,7 @@ resource "aws_iam_role_policy" "glue_s3_script_access" {
     ]
   })
 }
+
 
 
 # =========================
