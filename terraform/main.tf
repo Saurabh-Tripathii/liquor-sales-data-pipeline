@@ -43,10 +43,7 @@ resource "aws_iam_role_policy" "glue_script_read" {
     Statement = [
       {
         Effect = "Allow"
-        Action = [
-          "s3:GetObject",
-          "s3:ListBucket"
-        ]
+        Action = ["s3:GetObject", "s3:ListBucket"]
         Resource = [
           "arn:aws:s3:::liquor-glue-scripts-auto",
           "arn:aws:s3:::liquor-glue-scripts-auto/scripts/*"
@@ -70,18 +67,12 @@ resource "aws_glue_job" "liquor_job" {
   }
 
   default_arguments = {
-    "--RAW_S3_PATH"   = var.raw_s3_path
-    "--CLEAN_S3_PATH" = var.clean_s3_path
     "--job-language" = "python"
   }
 
   glue_version      = "4.0"
   worker_type       = "G.2X"
   number_of_workers = 5
-
-  lifecycle {
-    ignore_changes = [default_arguments]
-  }
 }
 
 # =========================
@@ -99,57 +90,5 @@ resource "aws_glue_crawler" "cleaned_crawler" {
   schema_change_policy {
     update_behavior = "UPDATE_IN_DATABASE"
     delete_behavior = "LOG"
-  }
-}
-
-# =========================
-# RUN GLUE → WAIT → RUN CRAWLER
-# =========================
-resource "null_resource" "run_glue_then_crawler" {
-
-  depends_on = [
-    aws_glue_job.liquor_job,
-    aws_glue_crawler.cleaned_crawler,
-    aws_iam_role_policy.glue_script_read
-  ]
-
-  provisioner "local-exec" {
-    command = <<EOT
-set -e
-
-echo "Starting Glue Job..."
-JOB_RUN_ID=$(aws glue start-job-run \
-  --job-name liquor-sales-cleaning-job \
-  --arguments "{\"--RAW_S3_PATH\":\"${var.raw_s3_path}\",\"--CLEAN_S3_PATH\":\"${var.clean_s3_path}\"}" \
-  --query JobRunId --output text)
-
-echo "JobRunId: $JOB_RUN_ID"
-
-echo "Waiting for Glue Job to finish..."
-while true; do
-  STATUS=$(aws glue get-job-run \
-    --job-name liquor-sales-cleaning-job \
-    --run-id $JOB_RUN_ID \
-    --query JobRun.JobRunState \
-    --output text)
-
-  echo "Current status: $STATUS"
-
-  if [ "$STATUS" = "SUCCEEDED" ]; then
-    echo "Glue Job completed successfully"
-    break
-  elif [ "$STATUS" = "FAILED" ] || [ "$STATUS" = "STOPPED" ] || [ "$STATUS" = "TIMEOUT" ]; then
-    echo "Glue Job failed"
-    exit 1
-  fi
-
-  sleep 30
-done
-
-echo "Starting Glue Crawler..."
-aws glue start-crawler --name liquor-cleaned-crawler
-
-echo "Pipeline completed successfully"
-EOT
   }
 }
