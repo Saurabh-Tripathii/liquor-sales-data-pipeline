@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       raw_s3_path:
-        description: "RAW data S3 path (example: s3://bucket/path/)"
+        description: "RAW data S3 path"
         required: true
       clean_s3_path:
-        description: "CLEAN data S3 path (example: s3://bucket/cleaned/)"
+        description: "CLEAN data S3 path"
         required: true
 
 jobs:
@@ -15,90 +15,53 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repo
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout repo
+      uses: actions/checkout@v4
 
-      # 2️⃣ Configure AWS
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+    - name: Configure AWS
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
 
-      # 3️⃣ Setup Terraform
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
 
-      # 4️⃣ Terraform Init
-      - name: Terraform Init
-        run: terraform init
-        working-directory: terraform
+    - name: Terraform Init
+      run: terraform init
+      working-directory: terraform
 
-      # 5️⃣ Terraform Apply (infra + glue config)
-      - name: Terraform Apply
-        run: |
-          terraform apply -auto-approve \
-            -var="raw_s3_path=${{ github.event.inputs.raw_s3_path }}" \
-            -var="clean_s3_path=${{ github.event.inputs.clean_s3_path }}"
-        working-directory: terraform
+    - name: Terraform Apply
+      run: |
+        terraform apply -auto-approve \
+          -var="raw_s3_path=${{ github.event.inputs.raw_s3_path }}" \
+          -var="clean_s3_path=${{ github.event.inputs.clean_s3_path }}"
+      working-directory: terraform
 
-      # 6️⃣ Run Glue Job
-      - name: Run Glue Job
-        run: |
-          aws glue start-job-run \
+    - name: Run Glue Job & Wait
+      run: |
+        JOB_RUN_ID=$(aws glue start-job-run \
+          --job-name liquor-sales-cleaning-job \
+          --arguments "{\"--RAW_S3_PATH\":\"${{ github.event.inputs.raw_s3_path }}\",\"--CLEAN_S3_PATH\":\"${{ github.event.inputs.clean_s3_path }}\"}" \
+          --query JobRunId --output text)
+
+        echo "JobRunId: $JOB_RUN_ID"
+
+        while true; do
+          STATUS=$(aws glue get-job-run \
             --job-name liquor-sales-cleaning-job \
-            --arguments "{
-              \"--RAW_S3_PATH\": \"${{ github.event.inputs.raw_s3_path }}\",
-              \"--CLEAN_S3_PATH\": \"${{ github.event.inputs.clean_s3_path }}\"
-            }"
-       # 7️⃣ Ensure Glue Crawler exists & run it
-      - name: Ensure and Run Glue Crawler
-        shell: bash
-        run: |
-          set -e
+            --run-id $JOB_RUN_ID \
+            --query JobRun.JobRunState \
+            --output text)
 
-          CRAWLER_NAME="liquor-cleaned-crawler"
-          DATABASE_NAME="liquor_sales_database"
-          ROLE_NAME="AWSGlueServiceRole-liquor"
-          CLEAN_PATH="${{ github.event.inputs.clean_s3_path }}"
+          echo "Status: $STATUS"
 
-          echo "🔍 Checking if Glue Crawler exists..."
+          if [ "$STATUS" = "SUCCEEDED" ]; then break; fi
+          if [ "$STATUS" = "FAILED" ]; then exit 1; fi
 
-          if aws glue get-crawler --name "$CRAWLER_NAME" >/dev/null 2>&1; then
-            echo "Crawler already exists: $CRAWLER_NAME"
-          else
-            echo "Crawler not found. Creating crawler..."
+          sleep 30
+        done
 
-            aws glue create-crawler \
-              --name "$CRAWLER_NAME" \
-              --role "$ROLE_NAME" \
-              --database-name "$DATABASE_NAME" \
-              --targets S3Targets=[{Path="$CLEAN_PATH"}] \
-              --schema-change-policy UpdateBehavior=UPDATE_IN_DATABASE,DeleteBehavior=LOG
-          fi
-
-          echo " Starting Glue Crawler..."
-          aws glue start-crawler --name "$CRAWLER_NAME"
-
-          echo " Waiting for crawler to finish..."
-
-          while true; do
-            STATUS=$(aws glue get-crawler \
-              --name "$CRAWLER_NAME" \
-              --query 'Crawler.State' \
-              --output text)
-
-            echo "Crawler status: $STATUS"
-
-            if [ "$STATUS" = "READY" ]; then
-              echo "Crawler completed successfully"
-              break
-            fi
-
-            sleep 30
-          done
-
-
-            
+    - name: Run Glue Crawler
+      run: aws glue start-crawler --name liquor-cleaned-crawler
