@@ -14,10 +14,6 @@ from pyspark.sql.functions import (
     to_date, year, month, trim, upper
 )
 from pyspark.sql.types import IntegerType, DecimalType
-from pyspark.sql.types import (
-    StructType, StructField, StringType
-)
-
 
 args = getResolvedOptions(sys.argv, ["RAW_S3_PATH", "CLEAN_S3_PATH"])
 
@@ -31,46 +27,11 @@ spark = glueContext.spark_session
 job = Job(glueContext)
 job.init("liquor-sales-cleaning-job-copy", args)
 
-schema = StructType([
-    StructField("Invoice/Item_Number", StringType(), True),
-    StructField("Date", StringType(), True),
-    StructField("Store_Number", IntegerType(), True),
-    StructField("Store_Name", StringType(), True),
-    StructField("Address", StringType(), True),
-    StructField("City", StringType(), True),
-    StructField("Zip_Code", StringType(), True),
-    StructField("County", StringType(), True),
-    StructField("County_Number", IntegerType(), True),
-    StructField("Category", IntegerType(), True),
-    StructField("Category_Name", StringType(), True),
-    StructField("Vendor_Number", IntegerType(), True),
-    StructField("Vendor_Name", StringType(), True),
-    StructField("Item_Number", StringType(), True),
-    StructField("Item_Description", StringType(), True),
-    StructField("Pack", IntegerType(), True),
-    StructField("Bottle_Volume_(ml)", IntegerType(), True),
-    StructField("State_Bottle_Cost", StringType(), True),
-    StructField("State_Bottle_Retail", StringType(), True),
-    StructField("Bottles_Sold", IntegerType(), True),
-    StructField("Sale_(Dollars)", StringType(), True),
-    StructField("Volume_Sold_(Liters)", StringType(), True),
-    StructField("Volume_Sold_(Gallons)", StringType(), True),
-    StructField("Store_Location", StringType(), True)
-])
-
 # 2. Read RAW CSV
 df = spark.read \
     .option("header", "true") \
-    .schema(schema) \
+    .option("inferSchema", "true") \
     .csv(RAW_S3_PATH)
-
-print("RAW PATH:", RAW_S3_PATH)
-print("ROW COUNT:", df.count())
-print("COLUMNS:", df.columns)
-
-if df.count() == 0:
-    raise Exception(f"No data found at path: {RAW_S3_PATH}")
-
 
 # 3. Normalize column names
 
