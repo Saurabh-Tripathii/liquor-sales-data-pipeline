@@ -60,24 +60,3 @@ resource "aws_glue_job" "liquor_job" {
   worker_type       = "G.2X"
   number_of_workers = 5
 }
-
-# =========================
-# GLUE CRAWLER (DEFINE ONLY)
-resource "aws_glue_crawler" "cleaned_crawler" {
-  name          = "liquor-cleaned-crawler"
-  role          = data.aws_iam_role.glue_role.arn
-  database_name = "liquor_sales_database"
-
-  s3_target {
-    path = var.clean_s3_path
-  }
-
-  schema_change_policy {
-    update_behavior = "UPDATE_IN_DATABASE"
-    delete_behavior = "LOG"
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
