@@ -57,7 +57,7 @@ resource "aws_iam_role_policy" "glue_script_read" {
 }
 
 # =========================
-# GLUE JOB (DEFINE ONLY)
+# GLUE JOB 
 # =========================
 resource "aws_glue_job" "liquor_job" {
   name     = "liquor-sales-cleaning-job"
@@ -85,7 +85,7 @@ resource "aws_glue_job" "liquor_job" {
 }
 
 # =========================
-# GLUE CRAWLER (DEFINE ONLY)
+# GLUE CRAWLER 
 # =========================
 resource "aws_glue_crawler" "cleaned_crawler" {
   name          = "liquor-cleaned-crawler"
