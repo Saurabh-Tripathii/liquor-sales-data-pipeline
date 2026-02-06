@@ -66,4 +66,4 @@ https://data.iowa.gov/Sales-Distribution/Iowa-Liquor-Sales/m3tr-qhgy/about_data
 
 ## Architecture Diagram
 
-![Architecture Diagram](latest arc.png)
+![Architecture Diagram](architecture.png)
