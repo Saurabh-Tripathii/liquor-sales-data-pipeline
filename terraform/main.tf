@@ -12,19 +12,6 @@ provider "aws" {
 }
 
 # =========================
-# INPUT VARIABLES
-# =========================
-variable "raw_s3_path" {
-  type        = string
-  description = "Raw S3 path"
-}
-
-variable "clean_s3_path" {
-  type        = string
-  description = "Cleaned S3 path"
-}
-
-# =========================
 # EXISTING IAM ROLE
 # =========================
 data "aws_iam_role" "glue_role" {
