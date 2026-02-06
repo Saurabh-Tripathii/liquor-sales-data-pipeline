@@ -63,7 +63,6 @@ resource "aws_glue_job" "liquor_job" {
 
 # =========================
 # GLUE CRAWLER (DEFINE ONLY)
-# =========================
 resource "aws_glue_crawler" "cleaned_crawler" {
   name          = "liquor-cleaned-crawler"
   role          = data.aws_iam_role.glue_role.arn
@@ -76,5 +75,9 @@ resource "aws_glue_crawler" "cleaned_crawler" {
   schema_change_policy {
     update_behavior = "UPDATE_IN_DATABASE"
     delete_behavior = "LOG"
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
