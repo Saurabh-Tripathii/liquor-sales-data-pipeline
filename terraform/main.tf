@@ -52,7 +52,7 @@ resource "aws_glue_job" "liquor_job" {
 
   command {
     name            = "glueetl"
-    script_location = "s3://liquor-glue-scripts-auto/scripts/liquor_cleaning_job.py"
+    script_location = "s3://liquor-glue-scripts-auto/scripts/liquor-sales-cleaning-job-copy"
     python_version  = "3"
   }
 
