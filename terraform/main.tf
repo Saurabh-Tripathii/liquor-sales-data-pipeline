@@ -10,20 +10,6 @@ terraform {
 provider "aws" {
   region = "us-east-1"
 }
-
-# =========================
-# INPUT VARIABLES
-# =========================
-variable "raw_s3_path" {
-  type        = string
-  description = "Raw S3 path"
-}
-
-variable "clean_s3_path" {
-  type        = string
-  description = "Cleaned S3 path"
-}
-
 # =========================
 # EXISTING IAM ROLE
 # =========================
