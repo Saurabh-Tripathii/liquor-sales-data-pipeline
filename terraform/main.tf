@@ -67,9 +67,10 @@ resource "aws_glue_job" "liquor_job" {
   number_of_workers = 5
 
   lifecycle {
-    ignore_changes = [default_arguments]
-  }
+  create_before_destroy = true
 }
+}
+
 
 # =========================
 # GLUE CRAWLER 
