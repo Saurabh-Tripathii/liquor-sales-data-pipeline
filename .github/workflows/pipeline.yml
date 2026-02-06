@@ -67,9 +67,9 @@ jobs:
           echo "🔍 Checking if Glue Crawler exists..."
 
           if aws glue get-crawler --name "$CRAWLER_NAME" >/dev/null 2>&1; then
-            echo "✅ Crawler already exists: $CRAWLER_NAME"
+            echo "Crawler already exists: $CRAWLER_NAME"
           else
-            echo "🚀 Crawler not found. Creating crawler..."
+            echo "Crawler not found. Creating crawler..."
 
             aws glue create-crawler \
               --name "$CRAWLER_NAME" \
@@ -79,10 +79,10 @@ jobs:
               --schema-change-policy UpdateBehavior=UPDATE_IN_DATABASE,DeleteBehavior=LOG
           fi
 
-          echo "▶️ Starting Glue Crawler..."
+          echo " Starting Glue Crawler..."
           aws glue start-crawler --name "$CRAWLER_NAME"
 
-          echo "⏳ Waiting for crawler to finish..."
+          echo " Waiting for crawler to finish..."
 
           while true; do
             STATUS=$(aws glue get-crawler \
@@ -93,7 +93,7 @@ jobs:
             echo "Crawler status: $STATUS"
 
             if [ "$STATUS" = "READY" ]; then
-              echo "✅ Crawler completed successfully"
+              echo "Crawler completed successfully"
               break
             fi
 
