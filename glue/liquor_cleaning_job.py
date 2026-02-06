@@ -50,6 +50,7 @@ df_clean = df.dropna(subset=[
 ])
 
 df_clean = df_clean.drop("Store_Location")
+df_clean = df_clean.drop("Address")
 
 # =========================================================
 # 5. RENAME Invoice column 
