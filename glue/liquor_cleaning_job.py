@@ -30,9 +30,7 @@ df = spark.read \
     .option("header", "true") \
     .option("inferSchema", "true") \
     .csv(RAW_S3_PATH)
-#----------------------
-df= df.drop("Address")
-#------------------------
+
 # 3. Normalize column names
 
 
