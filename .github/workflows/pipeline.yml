@@ -48,8 +48,7 @@ jobs:
         \"--RAW_S3_PATH\": \"${{ github.event.inputs.raw_s3_path }}\",
         \"--CLEAN_S3_PATH\": \"${{ github.event.inputs.clean_s3_path }}\"
       }"
-
-          --query JobRunId --output text)
+      --query JobRunId --output text)
 
         echo "JobRunId: $JOB_RUN_ID"
 
@@ -68,5 +67,12 @@ jobs:
           sleep 30
         done
 
-    - name: Run Glue Crawler
-      run: aws glue start-crawler --name liquor-cleaned-crawler
+- name: Ensure and Run Glue Crawler
+  run: |
+    if aws glue get-crawler --name liquor-cleaned-crawler; then
+      echo "Crawler exists"
+    else
+      aws glue create-crawler ...
+    fi
+
+    aws glue start-crawler --name liquor-cleaned-crawler
