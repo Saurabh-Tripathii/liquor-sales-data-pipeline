@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
 # 1. Glue setup & job parameters
 
 import sys
