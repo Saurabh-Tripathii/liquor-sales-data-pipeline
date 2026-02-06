@@ -39,11 +39,16 @@ jobs:
           -var="clean_s3_path=${{ github.event.inputs.clean_s3_path }}"
       working-directory: terraform
 
-    - name: Run Glue Job & Wait
-      run: |
-        JOB_RUN_ID=$(aws glue start-job-run \
-          --job-name liquor-sales-cleaning-job \
-          --arguments "{\"--RAW_S3_PATH\":\"${{ github.event.inputs.raw_s3_path }}\",\"--CLEAN_S3_PATH\":\"${{ github.event.inputs.clean_s3_path }}\"}" \
+    # 6️⃣ Run Glue Job (OPTION 1 – CORRECT WAY)
+- name: Run Glue Job
+  run: |
+    aws glue start-job-run \
+      --job-name liquor-sales-cleaning-job \
+      --arguments "{
+        \"--RAW_S3_PATH\": \"${{ github.event.inputs.raw_s3_path }}\",
+        \"--CLEAN_S3_PATH\": \"${{ github.event.inputs.clean_s3_path }}\"
+      }"
+
           --query JobRunId --output text)
 
         echo "JobRunId: $JOB_RUN_ID"
