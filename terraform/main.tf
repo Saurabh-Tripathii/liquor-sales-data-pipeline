@@ -11,29 +11,29 @@ provider "aws" {
   region = "us-east-1"
 }
 
-# =====================================================
-# INPUT VARIABLES (ONLY 2 — AS YOU WANTED)
-# =====================================================
+# =========================
+# INPUT VARIABLES
+# =========================
 variable "raw_s3_path" {
-  description = "RAW S3 path (example: s3://bucket/raw/)"
   type        = string
+  description = "Raw S3 path"
 }
 
 variable "clean_s3_path" {
-  description = "CLEAN S3 path (example: s3://bucket/cleaned/)"
   type        = string
+  description = "Cleaned S3 path"
 }
 
-# =====================================================
-# EXISTING GLUE IAM ROLE (USE, DON'T CREATE)
-# =====================================================
+# =========================
+# EXISTING IAM ROLE
+# =========================
 data "aws_iam_role" "glue_role" {
   name = "AWSGlueServiceRole-liquor"
 }
 
-# =====================================================
-# ALLOW GLUE TO READ SCRIPT FROM S3
-# =====================================================
+# =========================
+# ALLOW GLUE TO READ SCRIPT
+# =========================
 resource "aws_iam_role_policy" "glue_script_read" {
   name = "glue-read-script-bucket"
   role = data.aws_iam_role.glue_role.name
@@ -56,23 +56,23 @@ resource "aws_iam_role_policy" "glue_script_read" {
   })
 }
 
-# =====================================================
-# GLUE JOB (OVERWRITES EXISTING JOB IF SAME NAME)
-# =====================================================
+# =========================
+# GLUE JOB (DEFINE ONLY)
+# =========================
 resource "aws_glue_job" "liquor_job" {
-  name     = "liquor-sales-cleaning-job-copy"
+  name     = "liquor-sales-cleaning-job"
   role_arn = data.aws_iam_role.glue_role.arn
 
   command {
     name            = "glueetl"
+    script_location = "s3://liquor-glue-scripts-auto/scripts/liquor_cleaning_job.py"
     python_version  = "3"
-    script_location = "s3://liquor-glue-scripts-auto/scripts/liquor-sales-cleaning-job-copy"
   }
 
   default_arguments = {
-    "--job-language" = "python"
-    "--RAW_S3_PATH"  = var.raw_s3_path
+    "--RAW_S3_PATH"   = var.raw_s3_path
     "--CLEAN_S3_PATH" = var.clean_s3_path
+    "--job-language" = "python"
   }
 
   glue_version      = "4.0"
@@ -80,17 +80,13 @@ resource "aws_glue_job" "liquor_job" {
   number_of_workers = 5
 
   lifecycle {
-    create_before_destroy = true
+    ignore_changes = [default_arguments]
   }
-
-  depends_on = [
-    aws_iam_role_policy.glue_script_read
-  ]
 }
 
-# =====================================================
-# GLUE CRAWLER (USES EXISTING DATABASE & TABLE)
-# =====================================================
+# =========================
+# GLUE CRAWLER (DEFINE ONLY)
+# =========================
 resource "aws_glue_crawler" "cleaned_crawler" {
   name          = "liquor-cleaned-crawler"
   role          = data.aws_iam_role.glue_role.arn
@@ -106,14 +102,15 @@ resource "aws_glue_crawler" "cleaned_crawler" {
   }
 }
 
-# =====================================================
-# RUN: GLUE JOB → WAIT → RUN CRAWLER
-# =====================================================
+# =========================
+# RUN GLUE → WAIT → RUN CRAWLER
+# =========================
 resource "null_resource" "run_glue_then_crawler" {
 
   depends_on = [
     aws_glue_job.liquor_job,
-    aws_glue_crawler.cleaned_crawler
+    aws_glue_crawler.cleaned_crawler,
+    aws_iam_role_policy.glue_script_read
   ]
 
   provisioner "local-exec" {
@@ -122,7 +119,7 @@ set -e
 
 echo "Starting Glue Job..."
 JOB_RUN_ID=$(aws glue start-job-run \
-  --job-name liquor-sales-cleaning-job-copy \
+  --job-name liquor-sales-cleaning-job \
   --arguments "{\"--RAW_S3_PATH\":\"${var.raw_s3_path}\",\"--CLEAN_S3_PATH\":\"${var.clean_s3_path}\"}" \
   --query JobRunId --output text)
 
@@ -131,7 +128,7 @@ echo "JobRunId: $JOB_RUN_ID"
 echo "Waiting for Glue Job to finish..."
 while true; do
   STATUS=$(aws glue get-job-run \
-    --job-name liquor-sales-cleaning-job-copy \
+    --job-name liquor-sales-cleaning-job \
     --run-id $JOB_RUN_ID \
     --query JobRun.JobRunState \
     --output text)
