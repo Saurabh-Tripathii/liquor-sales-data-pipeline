@@ -15,11 +15,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repo
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # 2️⃣ Configure AWS
+
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -27,16 +26,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      # 3️⃣ Setup Terraform
+   
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      # 4️⃣ Terraform Init
+ 
       - name: Terraform Init
         run: terraform init
         working-directory: terraform
 
-      # 5️⃣ Terraform Apply
+   
       - name: Terraform Apply
         run: |
           terraform apply -auto-approve \
@@ -44,7 +43,7 @@ jobs:
             -var="clean_s3_path=${{ github.event.inputs.clean_s3_path }}"
         working-directory: terraform
 
-      # 6️⃣ Run Glue Job (WAIT UNTIL FINISH)
+      
       - name: Run Glue Job
         shell: bash
         run: |
@@ -80,7 +79,7 @@ jobs:
             sleep 30
           done
 
-      # 7️⃣ Ensure & Run Glue Crawler
+     
       - name: Ensure and Run Glue Crawler
         shell: bash
         run: |
