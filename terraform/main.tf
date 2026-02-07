@@ -40,7 +40,7 @@ resource "aws_iam_role_policy" "glue_script_read" {
 }
 
 # =========================
-# GLUE JOB (DEFINE ONLY)
+# GLUE JOB
 # =========================
 resource "aws_glue_job" "liquor_job" {
   name     = "liquor-sales-cleaning-job"
